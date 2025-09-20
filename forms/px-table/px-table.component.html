@@ -1,0 +1,158 @@
+@if (!!items && !!items() && !!options && !!options()) {
+    <p-table #pxTable [id]="tableUUID"
+             [value]="items()"
+             [rows]="options()?.rows"
+             [rowsPerPageOptions]="options()?.rowsPerPageOptions"
+             [paginator]="options()?.paginator ?? true"
+             [globalFilterFields]="globalFilterColumns()"
+             [tableStyle]="(options()?.tableStyle || {})"
+             [dataKey]="keyColumn()?.id"
+             [selectionMode]="options()?.enableMultiSelect ? 'multiple' : null"
+             [selection]="selectedRows"
+             (selectionChange)="onSelectionChange($event)"
+             tableStyleClass="p-datatable">
+
+        <ng-template #caption>
+            <div class="flex">
+                @if (options()?.globalFilter) {
+                    <p-iconfield iconPosition="left" class="ml-auto">
+                        <p-inputicon>
+                            <i class="pi pi-search"></i>
+                        </p-inputicon>
+                        <input pInputText type="text" (input)="onFilterGlobal($event)"/>
+                    </p-iconfield>
+                }
+            </div>
+        </ng-template>
+
+        <ng-template #header>
+            <tr>
+                @if (options()?.enableMultiSelect) {
+                    <th style="width: 3rem;">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+                }
+                @for (column of displayColumns(); track column) {
+                    <th [pTooltip]="(column?.tooltip || '') | translate"
+                        [style.width]="column?.width || 'auto'"
+                        [pSortableColumn]="column?.options?.enableSort === true ? column.id : undefined">
+                        {{ (column?.label || '')  | translate }}
+                        @if (column?.options?.enableSort === true) {
+                            <p-sortIcon [field]="column.id"></p-sortIcon>
+                        }
+                    </th>
+                }
+                @if (!!options()?.actionColumns && !!options()?.actionColumns?.length) {
+                    @for (actionCol of options()?.actionColumns; track actionCol) {
+                        @if (!!actionCol.headerBtns) {
+                            <th [style.width]="actionCol.width || 'auto'">
+                                <div class="flex justify-content-center gap-0 m-0">
+                                    @for (btn of actionCol.headerBtns; track btn) {
+                                        @if (!!btn) {
+                                            <p-button [icon]="btn.icon"
+                                                      [severity]="btn.severity"
+                                                      [variant]="btn.variant"
+                                                      [label]="(btn.label || '') | translate"
+                                                      [pTooltip]="(btn.tooltip || '') | translate"
+                                                      class="w-full"
+                                                      (click)="btn.command && btn.command!($event, null)"></p-button>
+                                        }
+                                    }
+                                </div>
+                            </th>
+                        }
+                    }
+                }
+            </tr>
+            <!-- Filter Row -->
+            <tr class="p-column-filter-row">
+                @if (options()?.enableMultiSelect) {
+                    <th></th>
+                }
+                @for (column of displayColumns(); track column) {
+                    <th>
+                        @if (column?.options?.enableFilter === true) {
+                            @if (column.family === 'TEXT') {
+                                <input pInputText type="text"
+                                       class="p-column-filter w-full"
+                                       (input)="onFilterText($event, column.id)"/>
+                            } @else if (column.family === 'CHIPS' && column?.options?.filterOptions) {
+                                <p-multiSelect [options]="column?.options?.filterOptions"
+                                               appendTo="body"
+                                               styleClass="p-column-filter w-full"
+                                               [showToggleAll]="true" [showClear]="true"
+                                               [(ngModel)]="filterValues[column.id]"
+                                               (onChange)="onFilterChips($event, column.id)">
+                                </p-multiSelect>
+                            }
+                        }
+                    </th>
+                }
+                @if (!!options()?.actionColumns && !!options()?.actionColumns?.length) {
+                    @for (actionCol of options()?.actionColumns; track actionCol) {
+                        <th></th>
+                    }
+                }
+            </tr>
+        </ng-template>
+        <ng-template #body let-rowItem>
+            <tr>
+                @if (options()?.enableMultiSelect) {
+                    <td style="width: 3rem;">
+                        <p-tableCheckbox [value]="rowItem"></p-tableCheckbox>
+                    </td>
+                }
+                <!-- Data columns -->
+                @for (column of displayColumns(); track column) {
+                    <td [pTooltip]="(column?.tooltip || '') | translate">
+                        @if (column?.id) {
+                            @if (column.family == 'TEXT') {
+                                {{ rowItem[column.id] }}
+                            } @else if (column.family == 'DURATION') {
+                                {{ rowItem.converted[column.id] }}
+                            } @else if (column.family == 'CHIPS') {
+                                @for (tagElem of rowItem[column.id]; track tagElem) {
+                                    <p-tag [value]="tagElem.label"
+                                           [icon]="tagElem.icon"
+                                           [severity]="tagElem.severity"
+                                           class="mr-1 mb-1"></p-tag>
+                                }
+                            } @else if (column.family == 'MOMENT') {
+                                {{ rowItem[column.id] | momentToTime }}
+                            }
+                        } @else if (column?.template) {
+                            <ng-container *ngTemplateOutlet="column.template; context: { $implicit: rowItem }">
+                            </ng-container>
+                        }
+                    </td>
+                }
+
+                <!-- Action columns -->
+                @if (!!options()?.actionColumns && !!options()?.actionColumns?.length) {
+                    @for (actionCol of options().actionColumns; track actionCol) {
+                        <td [style.width]="actionCol.width || 'auto'">
+                            @for (btn of actionCol.actionBtns; track btn) {
+                                @if (!!btn) {
+                                    <p-button [icon]="btn.icon"
+                                              [severity]="btn.severity"
+                                              [variant]="btn.variant"
+                                              [label]="(btn.label || '') | translate"
+                                              [pTooltip]="(btn.tooltip || '') | translate"
+                                              class="w-full"
+                                              (click)="btn.command && btn.command!($event, rowItem)"></p-button>
+                                }
+                            }
+                        </td>
+                    }
+                }
+            </tr>
+        </ng-template>
+
+        @if (options()?.emptyMessage) {
+            <ng-template #emptymessage>
+                {{ options()?.emptyMessage! | translate }}
+            </ng-template>
+        }
+
+    </p-table>
+}
