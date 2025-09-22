@@ -4,7 +4,6 @@ import { InputText } from 'primeng/inputtext';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { v4 as uuidv4 } from 'uuid';
-import { DropdownModule } from 'primeng/dropdown';
 import { Tooltip } from 'primeng/tooltip';
 import { NgTemplateOutlet } from '@angular/common';
 import { PxColumn } from '@px/forms/model/px-column';
@@ -24,7 +23,7 @@ import { Subject } from 'rxjs';
 @Component({
     standalone: true,
     selector: 'app-px-table',
-    imports: [InputText, TranslatePipe, Button, ReactiveFormsModule, FormsModule, DropdownModule, Tooltip, NgTemplateOutlet, TableModule, IconField, InputIcon, Tag, MomentToTimePipe, MultiSelect],
+    imports: [InputText, TranslatePipe, Button, ReactiveFormsModule, FormsModule, Tooltip, NgTemplateOutlet, TableModule, IconField, InputIcon, Tag, MomentToTimePipe, MultiSelect],
     templateUrl: './px-table.component.html'
 })
 export class PxTableComponent {

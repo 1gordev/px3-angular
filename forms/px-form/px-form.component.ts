@@ -20,7 +20,6 @@ import {Button} from "primeng/button";
 import {v4 as uuidv4} from 'uuid';
 import {PxFormAction} from "../model/px-form-action";
 import {PxFormSeverity} from "../model/px-form-severity";
-import {DropdownModule} from "primeng/dropdown";
 import {Tooltip} from "primeng/tooltip";
 import {Textarea} from "primeng/textarea";
 import {NgTemplateOutlet} from "@angular/common";
@@ -44,7 +43,6 @@ import {catchError, switchMap} from "rxjs/operators";
         Message,
         Button,
         ReactiveFormsModule,
-        DropdownModule,
         Tooltip,
         Textarea,
         NgTemplateOutlet,

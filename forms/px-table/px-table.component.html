@@ -1,20 +1,20 @@
 @if (!!items && !!items() && !!options && !!options()) {
     <p-table #pxTable [id]="tableUUID"
              [value]="items()"
-             [rows]="options()?.rows"
-             [rowsPerPageOptions]="options()?.rowsPerPageOptions"
-             [paginator]="options()?.paginator ?? true"
+             [rows]="options().rows"
+             [rowsPerPageOptions]="options().rowsPerPageOptions"
+             [paginator]="options().paginator"
              [globalFilterFields]="globalFilterColumns()"
-             [tableStyle]="(options()?.tableStyle || {})"
-             [dataKey]="keyColumn()?.id"
-             [selectionMode]="options()?.enableMultiSelect ? 'multiple' : null"
+             [tableStyle]="(options().tableStyle || {})"
+             [dataKey]="keyColumn().id"
+             [selectionMode]="options().enableMultiSelect ? 'multiple' : null"
              [selection]="selectedRows"
              (selectionChange)="onSelectionChange($event)"
              tableStyleClass="p-datatable">
 
         <ng-template #caption>
             <div class="flex">
-                @if (options()?.globalFilter) {
+                @if (options().globalFilter) {
                     <p-iconfield iconPosition="left" class="ml-auto">
                         <p-inputicon>
                             <i class="pi pi-search"></i>
@@ -27,7 +27,7 @@
 
         <ng-template #header>
             <tr>
-                @if (options()?.enableMultiSelect) {
+                @if (options().enableMultiSelect) {
                     <th style="width: 3rem;">
                         <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                     </th>
@@ -42,8 +42,8 @@
                         }
                     </th>
                 }
-                @if (!!options()?.actionColumns && !!options()?.actionColumns?.length) {
-                    @for (actionCol of options()?.actionColumns; track actionCol) {
+                @if (!!options().actionColumns && !!options().actionColumns.length) {
+                    @for (actionCol of options().actionColumns; track actionCol) {
                         @if (!!actionCol.headerBtns) {
                             <th [style.width]="actionCol.width || 'auto'">
                                 <div class="flex justify-content-center gap-0 m-0">
@@ -66,7 +66,7 @@
             </tr>
             <!-- Filter Row -->
             <tr class="p-column-filter-row">
-                @if (options()?.enableMultiSelect) {
+                @if (options().enableMultiSelect) {
                     <th></th>
                 }
                 @for (column of displayColumns(); track column) {
@@ -88,8 +88,8 @@
                         }
                     </th>
                 }
-                @if (!!options()?.actionColumns && !!options()?.actionColumns?.length) {
-                    @for (actionCol of options()?.actionColumns; track actionCol) {
+                @if (!!options().actionColumns && !!options().actionColumns.length) {
+                    @for (actionCol of options().actionColumns; track actionCol) {
                         <th></th>
                     }
                 }
@@ -97,7 +97,7 @@
         </ng-template>
         <ng-template #body let-rowItem>
             <tr>
-                @if (options()?.enableMultiSelect) {
+                @if (options().enableMultiSelect) {
                     <td style="width: 3rem;">
                         <p-tableCheckbox [value]="rowItem"></p-tableCheckbox>
                     </td>
@@ -128,7 +128,7 @@
                 }
 
                 <!-- Action columns -->
-                @if (!!options()?.actionColumns && !!options()?.actionColumns?.length) {
+                @if (!!options().actionColumns && !!options().actionColumns.length) {
                     @for (actionCol of options().actionColumns; track actionCol) {
                         <td [style.width]="actionCol.width || 'auto'">
                             @for (btn of actionCol.actionBtns; track btn) {
@@ -148,9 +148,9 @@
             </tr>
         </ng-template>
 
-        @if (options()?.emptyMessage) {
+        @if (options().emptyMessage) {
             <ng-template #emptymessage>
-                {{ options()?.emptyMessage! | translate }}
+                {{ options().emptyMessage! | translate }}
             </ng-template>
         }
 
