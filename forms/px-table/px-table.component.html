@@ -105,7 +105,10 @@
                 <!-- Data columns -->
                 @for (column of displayColumns(); track column) {
                     <td [pTooltip]="(column?.tooltip || '') | translate">
-                        @if (column?.id) {
+                        @if (column?.template) {
+                            <ng-container *ngTemplateOutlet="column.template; context: { $implicit: rowItem, row: rowItem }">
+                            </ng-container>
+                        } @else if (column?.id) {
                             @if (column.family == 'TEXT') {
                                 {{ rowItem[column.id] }}
                             } @else if (column.family == 'DURATION') {
@@ -120,9 +123,6 @@
                             } @else if (column.family == 'MOMENT') {
                                 {{ rowItem[column.id] | momentToTime }}
                             }
-                        } @else if (column?.template) {
-                            <ng-container *ngTemplateOutlet="column.template; context: { $implicit: rowItem }">
-                            </ng-container>
                         }
                     </td>
                 }
