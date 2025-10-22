@@ -1,38 +1,39 @@
-import { Component, computed, DestroyRef, effect, Injector, input, output, viewChild } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { InputText } from 'primeng/inputtext';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Button } from 'primeng/button';
-import { v4 as uuidv4 } from 'uuid';
-import { Tooltip } from 'primeng/tooltip';
-import { NgTemplateOutlet } from '@angular/common';
-import { PxColumn } from '@px/forms/model/px-column';
-import { PxTableOptions } from '@px/forms/model/px-table-options';
-import { Table, TableModule } from 'primeng/table';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
-import { PxColumnFamily } from '@px/forms/model/px-column-family';
-import { PxTableButton } from '@px/forms/model/px-table-button';
-import { DurationParser } from '@px/util/duration-parser';
-import { Tag } from 'primeng/tag';
-import { MomentToTimePipe } from '@px/pipe/moment-pipe.ts.pipe';
-import { MultiSelect } from 'primeng/multiselect';
-import { FilterService } from 'primeng/api';
-import { Subject } from 'rxjs';
+import {Component, computed, DestroyRef, effect, Injector, input, output, viewChild} from '@angular/core';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {InputText} from 'primeng/inputtext';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
+import {Button} from 'primeng/button';
+import {v4 as uuidv4} from 'uuid';
+import {Tooltip} from 'primeng/tooltip';
+import {NgClass, NgTemplateOutlet} from '@angular/common';
+import {PxColumn} from '@px/forms/model/px-column';
+import {PxTableOptions} from '@px/forms/model/px-table-options';
+import {Table, TableModule} from 'primeng/table';
+import {IconField} from 'primeng/iconfield';
+import {InputIcon} from 'primeng/inputicon';
+import {PxColumnFamily} from '@px/forms/model/px-column-family';
+import {PxTableButton} from '@px/forms/model/px-table-button';
+import {DurationParser} from '@px/util/duration-parser';
+import {Tag} from 'primeng/tag';
+import {MomentToTimePipe} from '@px/pipe/moment-pipe.ts.pipe';
+import {MultiSelect} from 'primeng/multiselect';
+import {FilterService} from 'primeng/api';
+import {Subject} from 'rxjs';
+import {Checkbox} from "primeng/checkbox";
 
 @Component({
     standalone: true,
     selector: 'app-px-table',
-    imports: [InputText, TranslatePipe, Button, ReactiveFormsModule, FormsModule, Tooltip, NgTemplateOutlet, TableModule, IconField, InputIcon, Tag, MomentToTimePipe, MultiSelect],
+    imports: [InputText, TranslatePipe, Button, ReactiveFormsModule, FormsModule, Tooltip, NgTemplateOutlet, TableModule, IconField, InputIcon, Tag, MomentToTimePipe, MultiSelect, Checkbox, NgClass],
     templateUrl: './px-table.component.html'
 })
 export class PxTableComponent {
-    items = input.required<any[]>({ alias: 'items' });
+    items = input.required<any[]>({alias: 'items'});
 
-    inputColumns = input.required<PxColumn[]>({ alias: 'columns' });
-    inputOptions = input.required<PxTableOptions>({ alias: 'options' });
+    inputColumns = input.required<PxColumn[]>({alias: 'columns'});
+    inputOptions = input.required<PxTableOptions>({alias: 'options'});
 
-    actionFetch = output<void>({ alias: 'actionFetch' });
+    actionFetch = output<void>({alias: 'actionFetch'});
 
     protected keyColumn = computed(
         () =>
@@ -45,14 +46,17 @@ export class PxTableComponent {
     protected displayColumns = computed(() =>
         this.inputColumns()
             .filter((c) => c.family !== PxColumnFamily.KEY)
-            .map((c) => ({ ...c }) as PxColumn)
+            .map((c) => ({...c}) as PxColumn)
     );
     protected globalFilterColumns = computed(() =>
         this.displayColumns()
             .filter((c) => !!c.globalFilter)
             .map((c) => c.id)
     );
-    protected options = computed(() => ({ ...this.inputOptions() }) as PxTableOptions);
+    protected anyFilterEnabled = computed(() =>
+        (this.displayColumns() || []).some((c) => c?.options?.enableFilter === true)
+    );
+    protected options = computed(() => ({...this.inputOptions()}) as PxTableOptions);
     protected pxTable = viewChild(Table);
 
     protected tableUUID = `px-table-${uuidv4()}`;
@@ -146,8 +150,8 @@ export class PxTableComponent {
             // If items changed, prune selection to existing items by key
             const keyId = this.keyColumn()?.id;
             if (!keyId) return;
-            const itemKeySet = new Set(items.map((it: any) => it?.[keyId]));
-            const newSelection = this.selectedRows.filter((r) => itemKeySet.has(r?.[keyId]));
+            const itemKeySet = new Set(items.map((it: any) => this.getByPath(it, keyId)));
+            const newSelection = this.selectedRows.filter((r) => itemKeySet.has(this.getByPath(r, keyId)));
             if (newSelection.length !== this.selectedRows.length) {
                 this.selectedRows = newSelection;
                 const opts = this.inputOptions();
@@ -178,11 +182,10 @@ export class PxTableComponent {
         }
     }
 
-    /** Programmatically set a chip filter while keeping the UI in sync */
-    public setChipFilter(column: string, values: any[]) {
+   setChipFilter(column: string, values: any[]) {
         const v = Array.isArray(values) ? [...values] : [];
         this.filterValues[column] = v;
-        this.onFilterChips({ value: v }, column);
+        this.onFilterChips({value: v}, column);
     }
 
     clearFilter(column: string) {
@@ -209,6 +212,25 @@ export class PxTableComponent {
         opts?.selectionChanges$?.next([...this.selectedRows]);
     }
 
+    protected onRowReorder(event: any) {
+        const opts = this.inputOptions();
+        if (opts?.onRowReorder) {
+            opts.onRowReorder(event);
+        }
+        this.clearSortState();
+    }
+
+    protected onRowClick(event: MouseEvent, rowItem: any) {
+        const opts = this.inputOptions();
+        if (!opts?.onRowClick) return;
+        const target = event.target as HTMLElement | null;
+        // Ignore clicks originating from buttons or elements marked to prevent row click
+        if (target && target.closest('button, .p-button, [data-prevent-row-click]')) {
+            return;
+        }
+        opts.onRowClick(event, rowItem);
+    }
+
     private tryApplyDefaultSort(): void {
         const table = this.pxTable && this.pxTable();
         const opts = this.options && this.options();
@@ -227,22 +249,31 @@ export class PxTableComponent {
         if ((table as any).sortSingle) {
             (table as any).sortSingle();
         } else if ((table as any).sort) {
-            (table as any).sort({ field: ds.fieldId, order: ds.order });
+            (table as any).sort({field: ds.fieldId, order: ds.order});
         }
 
         this.appliedDefaultSort = true;
     }
 
+    private getByPath(obj: any, path: string) {
+        if (!obj || !path) return undefined;
+        return path.split('.').reduce((acc: any, key: string) => (acc == null ? undefined : acc[key]), obj);
+    }
+
     private executeConversions(items: any[], cols: PxColumn[]) {
-        items.forEach((item) =>
-            cols.forEach(
-                (col) =>
-                    ((item as any).converted = {
-                        ...(item as any).converted,
-                        [col.id]: this.provideConversion(item[col.id], col)
-                    })
-            )
-        );
+        items.forEach((item) => {
+            cols.forEach((col) => {
+                const source = this.getByPath(item, col.id);
+                // Expose a synthetic flat property for dot-path ids to enable sorting/filtering/template access
+                if (col.id && (col.id.includes('.') || (item as any)[col.id] === undefined)) {
+                    (item as any)[col.id] = source;
+                }
+                (item as any).converted = {
+                    ...(item as any).converted,
+                    [col.id]: this.provideConversion(source, col)
+                };
+            });
+        });
     }
 
     private convertDuration(source: any, col: PxColumn): string {
@@ -262,6 +293,23 @@ export class PxTableComponent {
             case PxColumnFamily.CHIPS:
             default:
                 return source;
+        }
+    }
+
+    public clearSortState(): void {
+        const table = this.pxTable && this.pxTable();
+        if (!table) return;
+        const anyTable = table as any;
+        const hasSort =
+            !!anyTable.sortField ||
+            (Array.isArray(anyTable.multiSortMeta) && anyTable.multiSortMeta.length > 0);
+        if (!hasSort) return;
+
+        anyTable.sortField = null;
+        anyTable.sortOrder = typeof anyTable.defaultSortOrder === 'number' ? anyTable.defaultSortOrder : 1;
+        anyTable.multiSortMeta = null;
+        if (anyTable.tableService && typeof anyTable.tableService.onSort === 'function') {
+            anyTable.tableService.onSort(null);
         }
     }
 }

@@ -6,6 +6,7 @@ export class PxTableOptions {
     paginator = true;
     rows = 10;
     rowsPerPageOptions: number[] = [5, 10, 20, 50];
+    tableClasses: string[] = [];
     tableStyle = { 'min-width': '50rem' };
     globalFilter = false;
     actionColumns: PxTableActionColumn[] = [];
@@ -13,6 +14,11 @@ export class PxTableOptions {
     emptyMessage = 'common.empty-table-message';
     downloadable = false;
     defaultSort: PxTableSort = { fieldId: '', order: 1 };
+    stripedRows = true;
+    smallRows = false;
+    reorder = false;
+    onRowReorder?: (event: any) => void;
+    onRowClick?: (event: MouseEvent, row: any) => void;
 
     // Selection options (disabled by default)
     enableMultiSelect = false;
@@ -33,5 +39,10 @@ export class PxTableOptions {
         this.defaultSort = src?.defaultSort || this.defaultSort;
         this.enableMultiSelect = src?.enableMultiSelect ?? this.enableMultiSelect;
         this.selectionChanges$ = src?.selectionChanges$ ?? this.selectionChanges$;
+        this.stripedRows = src?.stripedRows ?? this.stripedRows;
+        this.smallRows = src?.smallRows ?? this.smallRows;
+        this.reorder = src?.reorder ?? this.reorder;
+        this.onRowReorder = src?.onRowReorder ?? this.onRowReorder;
+        this.onRowClick = src?.onRowClick ?? this.onRowClick;
     }
 }

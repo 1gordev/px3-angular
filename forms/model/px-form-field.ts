@@ -3,7 +3,7 @@ import {PxFormFieldInputKind} from "./px-form-field-input-kind";
 import {PxFormFieldDropdownKind} from "./px-form-field-dropdown-kind";
 import {PxFormFieldRules} from "./px-form-field-rules";
 import {PxFormFieldError} from "./px-form-field-error";
-import {Signal, TemplateRef} from "@angular/core";
+import {signal, Signal, TemplateRef} from "@angular/core";
 import {PxFormFieldBinaryKind} from "@px/forms/model/px-form-field-binary-kind";
 import {MenuItem, SelectItem} from "primeng/api";
 import {PxFormFieldButtonKind} from "@px/forms/model/px-form-field-button-kind";
@@ -23,7 +23,7 @@ export class PxFormField {
     icon?: string = '';
     rules?: PxFormFieldRules = {};
     cssClass?: string = 'sm:col-12 md:col-4';
-    items?: (SelectItem[] | any[]) = [];
+    items? = signal<(SelectItem[] | any[])>([]);
     errors?: PxFormFieldError[] = [];
     rows?: number = 5;
     severity?: PxFormSeverity = PxFormSeverity.INFO;
@@ -45,7 +45,7 @@ export class PxFormField {
         this.icon = src?.icon || this.icon;
         this.rules = src?.rules || this.rules;
         this.cssClass = src?.cssClass || this.cssClass;
-        this.items = [...src?.items || []];
+        this.items = src?.items || this.items;
         this.errors = [...src?.errors || []];
         this.rows = src?.rows || this.rows;
         this.severity = src?.severity || this.severity;

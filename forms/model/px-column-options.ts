@@ -5,4 +5,6 @@ export interface PxColumnOptions {
     enableSort?: boolean;
     enableFilter?: boolean;
     filterOptions?: SelectItem[];
+    // Enables inline editing for this column when supported by the column family/editor
+    editable?: boolean;
 }

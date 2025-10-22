@@ -1,140 +1,154 @@
 <p-fluid>
+    @if (internalOptions()?.showForm) {
+        <form [formGroup]="form()" [id]="formUUID" class="px-form">
+            <div class="formgrid grid">
+                @for (field of internalFields(); track field.id) {
+                    <div class="field {{field.cssClass}}">
+                        @if (field.visible == null || field.visible()) {
 
-    <form [formGroup]="form()" [id]="formUUID" class="px-form">
-        <div class="formgrid grid">
-            @for (field of internalFields(); track field.id) {
-                <div class="field {{field.cssClass}}">
-                    @if (field.visible == null || field.visible()) {
-
-                        <!-- Render the field based on its type -->
-                        @switch (field.family) {
-                            @case ('BUTTON') {
-                                <p-button label="{{ (field?.label || '') | translate }}" icon="{{ field.icon }}"
-                                          [style]="{'margin-top': '1.6rem'}"
-                                          [text]="field.kind == 'TEXT'" [severity]="getButtonSeverity(field.severity)"
-                                          (click)="onButtonFieldClick($event, field)"
-                                          [disabled]="field.disabled ? field.disabled() : false"></p-button>
-                            }
-                            @case ('INPUT') {
-                                <label for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
-                                <p-inputgroup>
-                                    @for (leftBtn of getGroupButtons(field, 'left'); track leftBtn) {
-                                        <p-button icon="{{ leftBtn.icon }}"
-                                                  label="{{ (leftBtn.label || '') | translate }}"
-                                                  [text]="leftBtn.label"
-                                                  [severity]="getButtonSeverity(leftBtn.severity)"
-                                                  (click)="onGroupButtonClick($event, leftBtn, field, form())"></p-button>
-                                    }
-                                    <input pInputText id="{{formUUID}}-{{field.id}}" type="text"
-                                           [pTooltip]="(field?.tooltip || '') | translate"
-                                           [formControlName]="field.id"/>
-                                    @for (rightBtn of getGroupButtons(field, 'right'); track rightBtn) {
-                                        <p-button icon="{{ rightBtn.icon }}"
-                                                  label="{{ (rightBtn.label || '') | translate }}"
-                                                  [text]="rightBtn.label"
-                                                  [severity]="getButtonSeverity(rightBtn.severity)"
-                                                  (click)="onGroupButtonClick($event, rightBtn, field, form())"></p-button>
-                                    }
-                                </p-inputgroup>
-                            }
-                            @case ('DROPDOWN') {
-                                <label for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
-                                @if (field.kind == 'MULTISELECT') {
-                                    <p-multiSelect id="{{formUUID}}-{{field.id}}"
-                                                   [options]="field.items"
-                                                   [formControlName]="field.id"
+                            <!-- Render the field based on its type -->
+                            @switch (field.family) {
+                                @case ('BUTTON') {
+                                    <p-button label="{{ (field?.label || '') | translate }}" icon="{{ field.icon }}"
+                                              [style]="{'margin-top': '1.6rem'}"
+                                              [text]="field.kind == 'TEXT'"
+                                              [severity]="getButtonSeverity(field.severity)"
+                                              (click)="onButtonFieldClick($event, field)"
+                                              [disabled]="field.disabled ? field.disabled() : false"></p-button>
+                                }
+                                @case ('INPUT') {
+                                    <label
+                                        for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
+                                    <p-inputgroup>
+                                        @for (leftBtn of getGroupButtons(field, 'left'); track leftBtn) {
+                                            <p-button icon="{{ leftBtn.icon }}"
+                                                      label="{{ (leftBtn.label || '') | translate }}"
+                                                      [text]="leftBtn.label"
+                                                      [severity]="getButtonSeverity(leftBtn.severity)"
+                                                      (click)="onGroupButtonClick($event, leftBtn, field, form())"></p-button>
+                                        }
+                                        @if (field.kind == 'PASSWORD') {
+                                            <p-password
+                                                inputId="{{formUUID}}-{{field.id}}"
+                                                [formControlName]="field.id"
+                                                [pTooltip]="(field?.tooltip || '') | translate"
+                                                [feedback]="false"
+                                                [toggleMask]="true">
+                                            </p-password>
+                                        } @else {
+                                            <input pInputText id="{{formUUID}}-{{field.id}}"
+                                                   [type]="field.kind == 'NUMBER' ? 'number' : field.kind == 'EMAIL' ? 'email' : 'text'"
                                                    [pTooltip]="(field?.tooltip || '') | translate"
-                                                   [placeholder]="(field?.placeholder || '') | translate"
-                                                   [showClear]="true"
-                                                   [filter]="true"
-                                                   [filterBy]="'label'"
-                                                   [optionLabel]="'label'"
-                                                   [optionValue]="'value'"
-                                                   [appendTo]="'body'">
-                                    </p-multiSelect>
-                                } @else {
-                                    <p-select id="{{formUUID}}-{{field.id}}"
-                                              [options]="field.items"
-                                              [formControlName]="field.id"
+                                                   [formControlName]="field.id"/>
+                                        }
+                                        @for (rightBtn of getGroupButtons(field, 'right'); track rightBtn) {
+                                            <p-button icon="{{ rightBtn.icon }}"
+                                                      label="{{ (rightBtn.label || '') | translate }}"
+                                                      [text]="rightBtn.label"
+                                                      [severity]="getButtonSeverity(rightBtn.severity)"
+                                                      (click)="onGroupButtonClick($event, rightBtn, field, form())"></p-button>
+                                        }
+                                    </p-inputgroup>
+                                }
+                                @case ('DROPDOWN') {
+                                    <label
+                                        for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
+                                    @if (field.kind == 'MULTISELECT') {
+                                        <p-multiSelect id="{{formUUID}}-{{field.id}}"
+                                                       [options]="field.items && field.items() ? field.items() : []"
+                                                       [formControlName]="field.id"
+                                                       [pTooltip]="(field?.tooltip || '') | translate"
+                                                       [placeholder]="(field?.placeholder || '') | translate"
+                                                       [showClear]="true"
+                                                       [filter]="true"
+                                                       [filterBy]="'label'"
+                                                       [appendTo]="'body'">
+                                        </p-multiSelect>
+                                    } @else {
+                                        <p-select id="{{formUUID}}-{{field.id}}"
+                                                  [options]="field.items && field.items() ? field.items() : []"
+                                                  [formControlName]="field.id"
+                                                  [pTooltip]="(field?.tooltip || '') | translate"
+                                                  [placeholder]="(field?.placeholder || '') | translate"
+                                                  [showClear]="true"
+                                                  [filter]="true"
+                                                  [filterBy]="'label'"
+                                                  [appendTo]="'body'">
+                                        </p-select>
+                                    }
+                                }
+                                @case ('TEXTAREA') {
+                                    <label
+                                        for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
+                                    <textarea pTextarea id="{{formUUID}}-{{field.id}}" class="w-full"
                                               [pTooltip]="(field?.tooltip || '') | translate"
-                                              [placeholder]="(field?.placeholder || '') | translate"
-                                              [showClear]="true"
-                                              [filter]="true"
-                                              [filterBy]="'label'"
-                                              [optionLabel]="'label'"
-                                              [optionValue]="'value'"
-                                              [appendTo]="'body'">
-                                    </p-select>
+                                              [formControlName]="field.id" [rows]="field.rows"></textarea>
+                                }
+                                @case ('EMBEDDED') {
+                                    <label
+                                        for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
+                                    <div class="w-full">
+                                        @if (field.embeddedRef) {
+                                            <ng-container
+                                                *ngTemplateOutlet="field.embeddedRef(); context: { $implicit: field }">
+                                            </ng-container>
+                                        }
+                                    </div>
+                                }
+                                @case ('BINARY') {
+                                    <label
+                                        for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
+                                    <div class="w-full">
+                                        <p-checkbox id="{{formUUID}}-{{field.id}}" class="w-full" [binary]="true"
+                                                    [pTooltip]="(field?.tooltip || '') | translate"
+                                                    [formControlName]="field.id"></p-checkbox>
+                                    </div>
                                 }
                             }
-                            @case ('TEXTAREA') {
-                                <label for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
-                                <textarea pTextarea id="{{formUUID}}-{{field.id}}" class="w-full"
-                                          [pTooltip]="(field?.tooltip || '') | translate"
-                                          [formControlName]="field.id" [rows]="field.rows"></textarea>
-                            }
-                            @case ('EMBEDDED') {
-                                <label for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
-                                <div class="w-full">
-                                    @if (field.embeddedRef) {
-                                        <ng-container
-                                            *ngTemplateOutlet="field.embeddedRef(); context: { $implicit: field }">
-                                        </ng-container>
-                                    }
-                                </div>
-                            }
-                            @case ('BINARY') {
-                                <label for="{{formUUID}}-{{field.id}}">{{ (field?.label || '') | translate }}</label>
-                                <div class="w-full">
-                                    <p-checkbox id="{{formUUID}}-{{field.id}}" class="w-full" [binary]="true"
-                                                [pTooltip]="(field?.tooltip || '') | translate"
-                                                [formControlName]="field.id"></p-checkbox>
-                                </div>
+
+                            <!-- Field's error messages -->
+                            @for (errorMsg of field.errors; track errorMsg.name) {
+                                @if (form().controls[field.id].hasError(errorMsg.name)) {
+                                    <p-message size="small" severity="error"
+                                               variant="simple">{{ errorMsg.message | translate }}
+                                    </p-message>
+                                }
                             }
                         }
+                    </div>
+                }
+            </div>
+        </form>
 
-                        <!-- Field's error messages -->
-                        @for (errorMsg of field.errors; track errorMsg.name) {
-                            @if (form().controls[field.id].hasError(errorMsg.name)) {
-                                <p-message size="small" severity="error"
-                                           variant="simple">{{ errorMsg.message | translate }}
-                                </p-message>
-                            }
+        <div class="grid gap-0">
+            <div class="col-6 gap-0">
+                <div class="flex justify-content-start flex-wrap">
+                    @for (action of (internalOptions().actions || []); track action.id) {
+                        @if (action.placement == 'BOTTOM_LEFT') {
+                            <div class="flex align-items-center justify-content-center gap-1 m-1">
+                                <p-button label="{{ (action.label || '') | translate }}" icon="{{ action.icon }}"
+                                          [text]="action.textButton" [severity]="getButtonSeverity(action.severity)"
+                                          (click)="onActionClick(action)"></p-button>
+                            </div>
                         }
                     }
                 </div>
-            }
-        </div>
-    </form>
-
-    <div class="grid gap-0">
-        <div class="col-6 gap-0">
-            <div class="flex justify-content-start flex-wrap">
-                @for (action of (internalOptions().actions || []); track action.id) {
-                    @if (action.placement == 'BOTTOM_LEFT') {
-                        <div class="flex align-items-center justify-content-center gap-1 m-1">
-                            <p-button label="{{ (action.label || '') | translate }}" icon="{{ action.icon }}"
-                                      [text]="action.textButton" [severity]="getButtonSeverity(action.severity)"
-                                      (click)="onActionClick(action)"></p-button>
-                        </div>
+            </div>
+            <div class="col-6 gap-0">
+                <div class="flex justify-content-end flex-wrap">
+                    @for (action of (internalOptions().actions || []); track action.id) {
+                        @if (action.placement == 'BOTTOM_RIGHT') {
+                            <div class="flex align-items-center justify-content-center gap-1 m-1">
+                                <p-button label="{{ (action.label || '') | translate }}" icon="{{ action.icon }}"
+                                          [text]="action.textButton" [severity]="getButtonSeverity(action.severity)"
+                                          (click)="onActionClick(action)"></p-button>
+                            </div>
+                        }
                     }
-                }
+                </div>
             </div>
         </div>
-        <div class="col-6 gap-0">
-            <div class="flex justify-content-end flex-wrap">
-                @for (action of (internalOptions().actions || []); track action.id) {
-                    @if (action.placement == 'BOTTOM_RIGHT') {
-                        <div class="flex align-items-center justify-content-center gap-1 m-1">
-                            <p-button label="{{ (action.label || '') | translate }}" icon="{{ action.icon }}"
-                                      [text]="action.textButton" [severity]="getButtonSeverity(action.severity)"
-                                      (click)="onActionClick(action)"></p-button>
-                        </div>
-                    }
-                }
-            </div>
-        </div>
-    </div>
+    }
 
 
 </p-fluid>

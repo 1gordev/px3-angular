@@ -3,6 +3,6 @@ export enum PxFormFieldFamily {
     BUTTON = 'BUTTON',
     DROPDOWN = 'DROPDOWN',
     EMBEDDED = 'EMBEDDED',
-    INPUT= 'INPUT',
+    INPUT = 'INPUT',
     TEXTAREA = 'TEXTAREA',
 }

@@ -14,6 +14,7 @@ import {PxFormOptions} from "../model/px-form-options";
 import {PxFormFieldFamily} from "../model/px-form-field-family";
 import {takeUntilDestroyed, toObservable} from "@angular/core/rxjs-interop";
 import {InputText} from "primeng/inputtext";
+import {Password} from "primeng/password";
 import {TranslatePipe, TranslateService} from "@ngx-translate/core";
 import {Message} from "primeng/message";
 import {Button} from "primeng/button";
@@ -39,6 +40,7 @@ import {catchError, switchMap} from "rxjs/operators";
     imports: [
         Fluid,
         InputText,
+        Password,
         TranslatePipe,
         Message,
         Button,
@@ -72,16 +74,29 @@ export class PxFormComponent {
                 private readonly injector: Injector,
                 private readonly translateService: TranslateService) {
         // Sanitize and init form fields
+        let firstRunFields = true;
         effect(() => {
-            this.internalFields().forEach(f => this.initField(this.form(), f));
+            if(firstRunFields) {
+                this.internalFields().forEach(f => this.initField(this.form(), f));
 
-            if (this.internalOptions().autoSave) {
-                this.initAutoSave();
+                console.log('internal');
+                this.internalFields().filter(f => f.id === 'reportRegistryCode').forEach(f => console.log(f.items!()!));
+
+                if (this.internalOptions().autoSave) {
+                    this.initAutoSave();
+                }
             }
+            firstRunFields = false;
         });
 
         // Sanitize actions
-        effect(() => this.internalOptions().actions = this.internalOptions().actions?.map(a => new PxFormAction(a)) || []);
+        let firstRunActions = true;
+        effect(() => {
+            if(firstRunActions) {
+                this.internalOptions().actions = this.internalOptions().actions?.map(a => new PxFormAction(a)) || []
+            }
+            firstRunActions = false;
+        });
     }
 
     public insertAtCursor(fieldId: string, text: string) {
@@ -200,8 +215,8 @@ export class PxFormComponent {
         }
 
         // Handle field items label translation
-        if (field.family === PxFormFieldFamily.DROPDOWN && field.items) {
-            field.items.forEach(item => {
+        if (field.family === PxFormFieldFamily.DROPDOWN && !!field.items && !!field.items!()) {
+            field.items().forEach(item => {
                 if (item.label && typeof item.label === 'string') {
                     item.label = this.translateService.instant(item.label);
                 }
