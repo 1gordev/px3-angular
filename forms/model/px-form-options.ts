@@ -7,7 +7,7 @@ export class PxFormOptions {
     autoSaveWhenValid?: () => void = () => {
     }
     actions?: PxFormAction[] = [];
-    showForm = signal<boolean>(true);
+    showForm? = signal<boolean>(true);
 
     constructor(src?: Partial<PxFormOptions>) {
         this.autoSave = src?.autoSave || false;
