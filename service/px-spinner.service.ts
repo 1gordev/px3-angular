@@ -12,19 +12,20 @@ export class PxSpinnerService {
     wrap<T>(
         source: Observable<T>,
         successMessage: string,
-        errorMessage: string
+        errorMessage: string,
+        summary?: string
     ): Observable<T> {
         this.ngxSpinnerService.show();
         return source.pipe(
             tap({
                 next: () => {
                     if (successMessage && successMessage.trim() !== '') {
-                        this.pxMessageService.info('', successMessage)
+                        this.pxMessageService.info(summary ?? '', successMessage)
                     }
                 },
                 error: () => {
                     if(errorMessage && errorMessage.trim() !== '') {
-                        this.pxMessageService.error('', errorMessage)
+                        this.pxMessageService.error(summary ?? '', errorMessage)
                     }
                 }
             }),
