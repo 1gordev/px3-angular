@@ -26,6 +26,11 @@ export class PxTableOptions {
     // It will be instantiated by the table component when enableMultiSelect is true.
     selectionChanges$ = new Subject<any[]>();
 
+    // Server paging options (disabled by default)
+    enableServerPaging = false;
+    // totalRecords is required when server paging is enabled to render the paginator correctly
+    totalRecords?: number;
+
     constructor(src?: Partial<PxTableOptions>) {
         this.paginator = src?.paginator ?? this.paginator;
         this.rows = src?.rows || this.rows;
@@ -44,5 +49,7 @@ export class PxTableOptions {
         this.reorder = src?.reorder ?? this.reorder;
         this.onRowReorder = src?.onRowReorder ?? this.onRowReorder;
         this.onRowClick = src?.onRowClick ?? this.onRowClick;
+        this.enableServerPaging = src?.enableServerPaging ?? this.enableServerPaging;
+        this.totalRecords = src?.totalRecords ?? this.totalRecords;
     }
 }

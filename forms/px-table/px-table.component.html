@@ -13,7 +13,13 @@
              tableStyleClass="p-datatable {{ options()?.tableClasses?.join(' ') }}"
              [stripedRows]="!!options()?.stripedRows"
              [size]="!!options()?.smallRows ? 'small' : 'large'"
-             (onRowReorder)="onRowReorder($event)">
+             (onRowReorder)="onRowReorder($event)"
+             [lazy]="!!options()?.enableServerPaging"
+             [lazyLoadOnInit]="false"
+             [totalRecords]="options()?.enableServerPaging ? (options()?.totalRecords || 0) : 0"
+             (onLazyLoad)="onLazyLoad($event)"
+             [sortField]="options()?.enableServerPaging ? options()?.defaultSort?.fieldId : null"
+             [sortOrder]="options()?.enableServerPaging ? (options()?.defaultSort?.order ?? 1) : 1">
 
         <ng-template #caption>
             <div class="flex">

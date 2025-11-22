@@ -20,6 +20,7 @@ import {MultiSelect} from 'primeng/multiselect';
 import {FilterService} from 'primeng/api';
 import {Subject} from 'rxjs';
 import {Checkbox} from "primeng/checkbox";
+import {PxTableFetchParams} from "@px/forms/model/px-table-fetch-params";
 
 @Component({
     standalone: true,
@@ -33,7 +34,10 @@ export class PxTableComponent {
     inputColumns = input.required<PxColumn[]>({alias: 'columns'});
     inputOptions = input.required<PxTableOptions>({alias: 'options'});
 
+    // Legacy fetch trigger without params (kept for backward compatibility)
     actionFetch = output<void>({alias: 'actionFetch'});
+    // New fetch trigger for server paging with parameters
+    fetchPage = output<PxTableFetchParams>({alias: 'fetchPage'});
 
     protected keyColumn = computed(
         () =>
@@ -97,8 +101,22 @@ export class PxTableComponent {
         // Fetch on init if configured
         effect(() => {
             if (this.options && this.options()) {
-                if (this.options().fetchOnInit) {
-                    this.actionFetch.emit();
+                const opts = this.options();
+                if (opts.fetchOnInit) {
+                    if (opts.enableServerPaging) {
+                        const initial: PxTableFetchParams = {
+                            first: 0,
+                            rows: opts.rows ?? 10,
+                            pageIndex: 0,
+                            sortField: opts.defaultSort?.fieldId || undefined,
+                            sortOrder: (opts.defaultSort?.order as 1 | -1 | 0) || undefined,
+                            globalFilter: undefined,
+                            columnFilters: undefined
+                        };
+                        this.fetchPage.emit(initial);
+                    } else {
+                        this.actionFetch.emit();
+                    }
                 }
             }
         });
@@ -123,6 +141,23 @@ export class PxTableComponent {
             if (this.appliedDefaultSort) return;
 
             this.tryApplyDefaultSort();
+        });
+
+        // In server paging mode, set visual sort state once without triggering a fetch
+        effect(() => {
+            const opts = this.options?.();
+            const tableReady = !!(this.pxTable && this.pxTable());
+            if (!tableReady || !opts?.enableServerPaging) return;
+            const ds = opts.defaultSort;
+            if (!ds || !ds.fieldId) return;
+            const anyTable: any = this.pxTable!();
+            const currentField = anyTable?.sortField;
+            const currentOrder = anyTable?.sortOrder;
+            if (currentField !== ds.fieldId || currentOrder !== ds.order) {
+                anyTable.sortField = ds.fieldId;
+                anyTable.sortOrder = ds.order; // 1 asc, -1 desc
+                // Do not call sortSingle()/sort() to avoid lazy load fetch
+            }
         });
 
         // Initialize selection observable when multi-select is enabled
@@ -231,10 +266,39 @@ export class PxTableComponent {
         opts.onRowClick(event, rowItem);
     }
 
+    protected onLazyLoad(event: any) {
+        const opts = this.options && this.options();
+        if (!opts?.enableServerPaging) return;
+        const table: any = this.pxTable && this.pxTable();
+        const first = event.first ?? 0;
+        const rows = event.rows ?? opts.rows ?? 10;
+        const sortField = (event.sortField as string) || (table as any)?.sortField || opts.defaultSort?.fieldId;
+        const sortOrder = (
+            typeof event.sortOrder === 'number'
+                ? (event.sortOrder as 1 | -1 | 0)
+                : (typeof (table as any)?.sortOrder === 'number'
+                    ? ((table as any)?.sortOrder as 1 | -1 | 0)
+                    : (opts.defaultSort?.order as 1 | -1 | 0 | undefined))
+        );
+        const globalFilter = (table as any)?.filterGlobalValue ?? (table as any)?.globalFilterValue ?? undefined;
+        const params: PxTableFetchParams = {
+            first,
+            rows,
+            pageIndex: rows > 0 ? Math.floor(first / rows) : 0,
+            sortField: sortField || undefined,
+            sortOrder: (sortOrder as 1 | -1 | 0 | undefined) ?? undefined,
+            globalFilter: globalFilter,
+            columnFilters: (event as any)?.filters || undefined
+        };
+        this.fetchPage.emit(params);
+    }
+
     private tryApplyDefaultSort(): void {
         const table = this.pxTable && this.pxTable();
         const opts = this.options && this.options();
         if (!table || !opts) return;
+        // In server paging mode, skip client-side default sort to avoid redundant fetches
+        if (opts.enableServerPaging) return;
 
         const ds = opts.defaultSort;
         if (!ds || !ds.fieldId) return;
