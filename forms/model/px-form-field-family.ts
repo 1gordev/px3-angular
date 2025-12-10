@@ -5,4 +5,5 @@ export enum PxFormFieldFamily {
     EMBEDDED = 'EMBEDDED',
     INPUT = 'INPUT',
     TEXTAREA = 'TEXTAREA',
+    ROW = 'ROW',
 }

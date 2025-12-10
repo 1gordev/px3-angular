@@ -3,8 +3,8 @@
         <form [formGroup]="form()" [id]="formUUID" class="px-form">
             <div class="formgrid grid">
                 @for (field of internalFields(); track field.id) {
-                    <div class="field {{field.cssClass}}">
-                        @if (field.visible == null || field.visible()) {
+                    @if (field.visible == null || field.visible()) {
+                        <div class="field {{field.cssClass}}">
 
                             <!-- Render the field based on its type -->
                             @switch (field.family) {
@@ -104,18 +104,23 @@
                                                     [formControlName]="field.id"></p-checkbox>
                                     </div>
                                 }
+                                @case ('ROW') {
+                                    <div class="w-full" aria-hidden="true"></div>
+                                }
                             }
 
                             <!-- Field's error messages -->
-                            @for (errorMsg of field.errors; track errorMsg.name) {
-                                @if (form().controls[field.id].hasError(errorMsg.name)) {
-                                    <p-message size="small" severity="error"
-                                               variant="simple">{{ errorMsg.message | translate }}
-                                    </p-message>
+                            @if (form().controls[field.id]) {
+                                @for (errorMsg of field.errors; track errorMsg.name) {
+                                    @if (form().controls[field.id].hasError(errorMsg.name)) {
+                                        <p-message size="small" severity="error"
+                                                   variant="simple">{{ errorMsg.message | translate }}
+                                        </p-message>
+                                    }
                                 }
                             }
-                        }
-                    </div>
+                        </div>
+                    }
                 }
             </div>
         </form>

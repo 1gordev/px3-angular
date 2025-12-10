@@ -54,6 +54,11 @@ export class PxFormField {
         this.visible = src?.visible || this.visible;
         this.disabled = src?.disabled || this.disabled;
         this.convertToDisplay = src?.convertToDisplay || this.convertToDisplay;
+
+        // Layout-only row: default to full-width unless caller overrides cssClass.
+        if (this.family === PxFormFieldFamily.ROW && !src?.cssClass) {
+            this.cssClass = 'col-12';
+        }
     }
 
 }

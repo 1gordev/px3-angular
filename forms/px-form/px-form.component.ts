@@ -143,6 +143,10 @@ export class PxFormComponent {
     }
 
     private initField(formGroup: FormGroup, field: PxFormField) {
+        // Layout-only rows do not bind to the form model.
+        if (field.family === PxFormFieldFamily.ROW) {
+            return;
+        }
         // Remove the control if it exists
         if (formGroup.get(field.id)) {
             formGroup.removeControl(field.id);
